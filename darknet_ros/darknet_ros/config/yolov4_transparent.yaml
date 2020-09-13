@@ -1,0 +1,13 @@
+yolo_model:
+
+  config_file:
+    name: yolov4_transparent.cfg
+  weight_file:
+    name: Transparent_last.weights
+  threshold:
+    value: 0.3
+  detection_classes:
+    names:
+      - Soda
+      - Coffee
+      - Juice

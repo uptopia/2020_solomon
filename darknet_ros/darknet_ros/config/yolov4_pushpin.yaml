@@ -1,0 +1,11 @@
+yolo_model:
+
+  config_file:
+    name: yolov4_pushpin.cfg
+  weight_file:
+    name: yolo-pushpin_final.weights
+  threshold:
+    value: 0.3
+  detection_classes:
+    names:
+      - pushpin
