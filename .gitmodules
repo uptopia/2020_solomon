@@ -1,0 +1,3 @@
+[submodule "hiwin_windows_control"]
+	path = hiwin_windows_control
+	url = https://github.com/SamKaiYang/robot_control_hiwin_ros.git
