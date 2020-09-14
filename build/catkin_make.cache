@@ -1,2 +1,0 @@
-aruco_hand_eye:darknet_ros/darknet_ros:darknet_ros/darknet_ros_msgs:ddynamic_reconfigure:realsense-ros/realsense2_camera:realsense-ros/realsense2_description:usb_cam:yolo_detection
--DCATKIN_DEVEL_PREFIX=/home/robotarm/Documents/solomon_ws/devel -DCMAKE_INSTALL_PREFIX=/home/robotarm/Documents/solomon_ws/install -G Unix Makefiles
