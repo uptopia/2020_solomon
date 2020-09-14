@@ -1,0 +1,8 @@
+prefix=/home/robotarm/Documents/solomon_ws/install
+
+Name: yolo_detection
+Description: Description of yolo_detection
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib -lyolo_detection
+Requires: message_generation roscpp rospy std_msgs

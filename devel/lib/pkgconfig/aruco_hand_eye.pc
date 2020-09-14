@@ -1,0 +1,8 @@
+prefix=/home/robotarm/Documents/solomon_ws/devel
+
+Name: aruco_hand_eye
+Description: Description of aruco_hand_eye
+Version: 0.1.0
+Cflags: -I/home/robotarm/Documents/solomon_ws/devel/include
+Libs: -L${prefix}/lib 
+Requires: 
