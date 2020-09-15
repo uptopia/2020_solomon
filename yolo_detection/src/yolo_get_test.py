@@ -14,6 +14,7 @@ import math
 import enum
 from darknet_ros_msgs.msg import BoundingBox
 from darknet_ros_msgs.msg import BoundingBoxes
+from yolo_detection.msg import ROI_array
 from yolo_detection.msg import ROI
 import time
 #import cv2
@@ -43,24 +44,25 @@ def Yolo_callback(data):
     obj_num = len((data.bounding_boxes))
     if obj_num == 0:
             print("No Object Found!")
-            switch_flag == 1
             print("change method to Realsense!")
     else:
-        i = obj_num-1
-        boxes.probability = data.bounding_boxes[i].probability
-        boxes.xmin = data.bounding_boxes[i].xmin
-        boxes.ymin = data.bounding_boxes[i].ymin
-        boxes.xmax = data.bounding_boxes[i].xmax
-        boxes.ymax = data.bounding_boxes[i].ymax
-        boxes.id_name = data.bounding_boxes[i].id
-        boxes.Class_name = data.bounding_boxes[i].Class
+        #i = obj_num-1
+        for i in range(len(data.ROI_list)):
+            boxes.probability = data.bounding_boxes[i].probability
+            boxes.xmin = data.bounding_boxes[i].xmin
+            boxes.ymin = data.bounding_boxes[i].ymin
+            boxes.xmax = data.bounding_boxes[i].xmax
+            boxes.ymax = data.bounding_boxes[i].ymax
+            boxes.id_name = data.bounding_boxes[i].id
+            boxes.Class_name = data.bounding_boxes[i].Class
 
-        center_x  = (boxes.xmax+boxes.xmin)/2
-        center_y  = (boxes.ymax+boxes.ymin)/2
-        state = ROI()
-        state.object_name = str(boxes.id_name)
-        state.x = int(center_x)
-        state.y = int(center_y)
+            center_x  = (boxes.xmax+boxes.xmin)/2
+            center_y  = (boxes.ymax+boxes.ymin)/2
+            state = ROI()
+            state.object_name[i] = str(boxes.id_name)
+            state.x[i] = int(center_x)
+            state.y[i] = int(center_y)
+        print("state:",state)
         pub.publish(state)
 
 if __name__ == '__main__':
@@ -69,7 +71,8 @@ if __name__ == '__main__':
     rospy.init_node('yolo_boundingboxes', anonymous=True)
     rate = rospy.Rate(10) # 10hz
     rospy.Subscriber("/darknet_ros/bounding_boxes",BoundingBoxes,Yolo_callback)
-    pub = rospy.Publisher("obj_position", ROI, queue_size=10)
+    #pub = rospy.Publisher("obj_position", ROI, queue_size=10)
+    pub = rospy.Publisher("obj_position", ROI_array, queue_size=10)
     while not rospy.is_shutdown():
         print("ID:",boxes.id_name)
         print("信心值:",boxes.probability)

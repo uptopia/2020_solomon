@@ -14,7 +14,7 @@ publishers:
   object_detector:
     topic: /darknet_ros/found_object
     queue_size: 1
-    latch: true
+    latch: false
 
   bounding_boxes:
     topic: /darknet_ros/bounding_boxes
