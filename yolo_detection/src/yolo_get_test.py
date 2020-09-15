@@ -47,7 +47,7 @@ def Yolo_callback(data):
             print("change method to Realsense!")
     else:
         #i = obj_num-1
-        ROI_list = []
+        List = []
         for i in range(len(data.bounding_boxes)):
             boxes.probability = data.bounding_boxes[i].probability
             boxes.xmin = data.bounding_boxes[i].xmin
@@ -67,8 +67,8 @@ def Yolo_callback(data):
             ROI_data.x = center_x
             ROI_data.y = center_y
             ROIarray = ROI_array()
-            ROI_list.append([ROI_data.object_name,ROI_data.x ,ROI_data.y])
-            ROIarray = [ROI_list]
+            List.append(ROI_data)
+            ROIarray.ROI_list = List
         
         print("ROI_array:",ROIarray)
         pub.publish(ROIarray)
