@@ -35,11 +35,12 @@ class bounding_boxes():
         self.id_name = str(id_name)
         self.Class_name = str(Class_name)
 
-boxes = bounding_boxes(0,0,0,0,0,0,0)
+# boxes = bounding_boxes(0,0,0,0,0,0,0)
 # YOLO V4 輸入
 i = 0
 def Yolo_callback(data):
     global obj_num
+    boxes = bounding_boxes(0,0,0,0,0,0,0)
     #global probability,xmin,ymin,xmax,ymax,id_name,Class_name
     obj_num = len((data.bounding_boxes))
     if obj_num == 0:
@@ -56,7 +57,7 @@ def Yolo_callback(data):
             boxes.ymax = data.bounding_boxes[i].ymax
             boxes.id_name = data.bounding_boxes[i].id
             boxes.Class_name = data.bounding_boxes[i].Class
-
+            
             center_x  = (boxes.xmax+boxes.xmin)/2
             center_y  = (boxes.ymax+boxes.ymin)/2
 
@@ -74,7 +75,7 @@ def Yolo_callback(data):
         pub.publish(ROIarray)
 
 if __name__ == '__main__':
-
+    #global boxes
     argv = rospy.myargv()
     rospy.init_node('yolo_boundingboxes', anonymous=True)
     rate = rospy.Rate(10) # 10hz
@@ -82,13 +83,13 @@ if __name__ == '__main__':
     #pub = rospy.Publisher("obj_position", ROI, queue_size=10)
     pub = rospy.Publisher("obj_position", ROI_array, queue_size=10)
     while not rospy.is_shutdown():
-        print("ID:",boxes.id_name)
-        print("信心值:",boxes.probability)
-        print("Class:",boxes.Class_name)
-        print("xmin:",boxes.xmin)
-        print("ymin:",boxes.ymin)
-        print("xmnax",boxes.xmax)
-        print("ymax:",boxes.ymax)
+        # print("ID:",boxes.id_name)
+        # print("信心值:",boxes.probability)
+        # print("Class:",boxes.Class_name)
+        # print("xmin:",boxes.xmin)
+        # print("ymin:",boxes.ymin)
+        # print("xmnax",boxes.xmax)
+        # print("ymax:",boxes.ymax)
         os.system("clear")
         rate.sleep()
     rospy.spin()
