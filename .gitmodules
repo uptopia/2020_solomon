@@ -1,3 +1,6 @@
 [submodule "hiwin_robot_control"]
 	path = hiwin_robot_control
 	url = https://github.com/SamKaiYang/robot_control_hiwin_ros.git
+[submodule "obj_est"]
+	path = obj_est
+	url = https://github.com/andy-Chien/obj_est.git
