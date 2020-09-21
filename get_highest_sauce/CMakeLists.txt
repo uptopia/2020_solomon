@@ -142,7 +142,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/get_highest_sauce_node.cpp)
-add_executable(get_highest_sauce ~/Documents/solomon_ws/src/get_highest_sauce/src/get_highest_sauce.cpp)
+add_executable(get_highest_sauce ${PROJECT_SOURCE_DIR}/src/get_highest_sauce.cpp)
 target_link_libraries(get_highest_sauce ${catkin_LIBRARIES})
 add_dependencies(get_highest_sauce get_highest_sauce_gencpp)
 

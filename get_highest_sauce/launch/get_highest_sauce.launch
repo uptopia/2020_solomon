@@ -2,6 +2,7 @@
 
 <launch>
   <!-- Open Realsense -->
+  <arg name="json_file_path"      	default="$(find get_highest_sauce)/conf/sauce.json"/>
   <arg name="depth_width"               default="848"/>
   <arg name="depth_height"              default="480"/>
   <arg name="enable_depth"              default="true"/>
@@ -19,6 +20,7 @@
 
   <!-- Include main launch file -->
   <include file="$(find realsense2_camera)/launch/rs_rgbd.launch">
+    <arg name="json_file_path"            value="$(arg json_file_path   )"/>
     <arg name="depth_width"               value="$(arg depth_width      )"/>
     <arg name="depth_height"              value="$(arg depth_height     )"/>
     <arg name="enable_depth"              value="$(arg enable_depth     )"/>
@@ -42,6 +44,9 @@
   <include file="$(find darknet_ros)/launch/darknet_ros.launch">
     <arg name="network_param_file"    value="$(arg network_param_file)"/>
   </include>
+
+  <!-- Open rviz with predefined settings -->
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find get_highest_sauce)/conf/rviz_settings.rviz" />
 
 </launch>
 

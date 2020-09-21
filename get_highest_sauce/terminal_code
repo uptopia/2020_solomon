@@ -1,0 +1,37 @@
+$cd ~/Documents/solomon_ws
+$source devel/setup.bash
+$roscore
+$roslaunch get_highest_sauce get_highest_sauce.launch	//開realsense, yolov4
+$rosrun get_highest_sauce get_highest_sauce
+
+
+//====================================================================//
+1.開啟realsense
+	$cd rs_d435i_ws
+	$source devel/setup.bash
+	$roslaunch realsense2_camera rs_rgbd.launch filters:=pointcloud (align_depth:=true)
+
+	*roslaunch realsense2_camera rs_camera.launch
+
+2.開啟Yolo detector
+	$cd solomon_ws
+	$source devel/setup.bash
+	$roslaunch darknet_ros yolov4_sauce.launch
+	
+	*roslaunch yolo_detection yolo_get_test.launch
+
+=>1 + 2 = get_highest_sauce.launch
+
+3.執行get_hightest_sauce程式
+	$cd solomon_ws
+	$source devel/setup.bash
+	$rosrun get_highest_sauce get_highest_sauce
+
+
+=>用client測試：
+	$cd solomon_ws
+	$. devel/setup.bash
+	$rosrun client client
+
+	=>client丟request給get_highest_sauce,
+	get_highest_sauce 回傳 response
