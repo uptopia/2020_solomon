@@ -1,0 +1,15 @@
+yolo_model:
+
+  config_file:
+    name: yolov4_sauce.cfg
+  weight_file:
+    name: yolov4_sauce.weights
+  threshold:
+    value: 0.9
+  detection_classes:
+    names:
+      - lemon
+      - pepper
+      - egg
+      - ketchup
+      - chili
