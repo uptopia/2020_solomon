@@ -1,5 +1,13 @@
 # Solomon2020
 
+# avoidance strategy
+```
+roslaunch realsense2_camera rs_camera.launch 
+rosrun pcl_utils get_pointcloud_server
+rviz
+```
+
+
 # pushpin reflector recognition
 ```
 roslaunch realsense2_camera rs_rgbd_pushpin.launch
