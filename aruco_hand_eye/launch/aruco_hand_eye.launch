@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
   <!-- Set the eye mode (see README for more info) -->
   <arg name="camera_parent_frame"/>
