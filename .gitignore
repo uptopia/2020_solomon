@@ -1,3 +1,14 @@
 .vscode
 *.pyc
 *.png
+CATKIN_IGNORE
+pcl_utils/data/**/*.pcd
+
+yolo_v4/script/data/**/*.mp4
+yolo_v4/script/data/data/**/*.jpg
+yolo_v4/script/data/**/*.weights
+yolo_v4/script/checkpoints/**
+aruco_hand_eye/**/*.jpg
+darknet_ros/darknet_ros/yolo_network_config/weights/*.weights
+
+!pcl_utils/data/source/final/*.pcd

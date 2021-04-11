@@ -341,10 +341,11 @@ bool pick_highest_sauce()
             int ymax = sauces_all[n].box_pixel.ymax;
             
             //Ensure the 2D pixels are inside image's max width, height
-            if(xmin < 0) xmin = 0;
-            if(ymin < 0) ymin = 0;
-            if(xmax > img_width-1) xmax = img_width-1;
-            if(ymax > img_height-1) ymax = img_height-1;
+            if(xmin < 0) xmin = 114;//186;//0;
+            if(ymin < 0) ymin = 40;//74;//0;
+            if(xmax > img_width-1) xmax = 723;//1085;//img_width-1;
+            if(ymax > img_height-1) ymax = 424;//648;//img_height-1;
+            cout<<"\timgwidth, imgHeight = "<< img_width <<",  "<< img_height<<endl;
             cout<< "\tPixel (xmin, xmax, ymin, ymax) = "<< xmin << ", " << xmax <<", " << ymin << ", " << ymax << endl;
 
             //Map 2D pixel to 3D points

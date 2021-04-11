@@ -1,0 +1,1 @@
+/home/lucaubuntu18/Solomon_TransparentObject_ws/src/pcl_utils/data/source/final/cloud_SAC_Extract_Meatl_1.pcd

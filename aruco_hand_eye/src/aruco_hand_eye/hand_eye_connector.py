@@ -139,6 +139,7 @@ class HandEyeConnector(object):
     def aruco_cb(self, end_trans):
         res = hand_eye_calibrationResponse()
         ar_marker = self.aruco_tracker(end_trans.cmd)
+        camera_mat = ar_marker.camera_mat
         if end_trans.cmd == 'hello':
             self.caculate = True
         if ar_marker.rvecs is not None:
@@ -181,6 +182,7 @@ class HandEyeConnector(object):
             # Update data
             self.hand_world_samples.header.frame_id = 'ee'#optical_frame_id
             self.hand_world_samples.transforms.append(end_trans.end_trans)
+            print("end_trans.end_trans = ", end_trans.end_trans)
     
             self.camera_marker_samples.header.frame_id = 'cc'#optical_frame_id
             self.camera_marker_samples.transforms.append(msg.transform)
@@ -200,6 +202,7 @@ class HandEyeConnector(object):
         else:
             res.end2cam_trans = self.compute_calibration(msg)
             res.is_done = True
+            res.camera_mat = camera_mat
             return res
         # interactive
         if self.interactive:

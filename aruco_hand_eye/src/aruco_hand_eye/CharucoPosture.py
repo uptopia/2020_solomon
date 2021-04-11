@@ -33,8 +33,8 @@ CHARUCOBOARD_COLCOUNT=5
 CHARUCO_BOARD = aruco.CharucoBoard_create(
         squaresX=CHARUCOBOARD_COLCOUNT,
         squaresY=CHARUCOBOARD_ROWCOUNT,
-        squareLength=0.0359,
-        markerLength=0.0244,
+        squareLength=0.0322,
+        markerLength=0.0216,
         # squareLength=0.04,
         # markerLength=0.02,
         dictionary=ARUCO_DICT)
@@ -52,28 +52,39 @@ class CharucoBoardPosture():
         config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
         config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
 
-        self.pipeline.start(config)
+        cfg = self.pipeline.start(config)
         # Check for camera calibration data
-        c_x = 643.47548083
-        c_y = 363.67742746
-        f_x = 906.60886808
-        f_y = 909.34831447
-        k_1 = 0.16962942
-        k_2 = -0.5560001
-        p_1 = 0.00116353
-        p_2 = -0.00122694
-        k_3 = 0.52491878
+        # c_x = 643.47548083
+        # c_y = 363.67742746
+        # f_x = 906.60886808
+        # f_y = 909.34831447
+        k_1 = 0.16819103
+        k_2 = -0.560136378
+        p_1 = 0.000957010321
+        p_2 = -0.000250189256
+        k_3 = 0.519864386
 
-        c_x = 649.007507324219
-        c_y = 356.122222900391
-        f_x = 922.76806640625
-        f_y = 923.262023925781
-    
+        # c_x = 640.8177490234375
+        # c_y = 376.6036071777344
+        # f_x = 914.2339477539062
+        # f_y = 912.1910400390625
+        profile = cfg.get_stream(rs.stream.color) # Fetch stream profile for depth stream
+        intr = profile.as_video_stream_profile().get_intrinsics()
+        c_x = intr.ppx
+        c_y = intr.ppy
+        f_x = intr.fx
+        f_y = intr.fy
+        c_x = 639.18168277
+        c_y = 374.31724749
+        f_x = 904.50724252
+        f_y = 903.99107904
+        print("c_x: ", float(c_x), type(c_x))
         self.cameraMatrix = np.array([[f_x, 0, c_x],
                                [0, f_y, c_y],
                                [0, 0, 1]])
-        # self.distCoeffs = np.array([k_1, k_2, p_1, p_2, k_3])
-        self.distCoeffs = np.array([0.0, 0, 0, 0, 0])
+        print("cameraMatrix = ", self.cameraMatrix)
+        self.distCoeffs = np.array([k_1, k_2, p_1, p_2, k_3])
+        #self.distCoeffs = np.array([0.0, 0, 0, 0, 0])
 
         
         # self.cameraMatrix = np.array([[1.38726465e+03, 0.00000000e+00, 9.67009977e+02], #pinto
@@ -170,23 +181,27 @@ class CharucoBoardPosture():
                 # Require more than 20 squares
                 if response is not None and response > 20:
                     # Estimate the posture of the charuco board, which is a construction of 3D space based on the 2D video 
-                    pose, rvec, tvec = aruco.estimatePoseCharucoBoard(
+                    pose, rvec_, tvec = aruco.estimatePoseCharucoBoard(
                             charucoCorners=charuco_corners, 
                             charucoIds=charuco_ids, 
                             board=CHARUCO_BOARD, 
                             cameraMatrix=self.cameraMatrix, 
-                            distCoeffs=self.distCoeffs)
+                            distCoeffs=self.distCoeffs,
+                            rvec = np.zeros(3),
+                            tvec = np.zeros(3))
                             
                     # self.rvecs, self.tvecs = aruco.estimatePoseSingleMarkers(corners, self.markersize, self.cameraMatrix, self.distCoeffs)
                     # for _id, rvec, tvec in zip(ids, self.rvecs, self.tvecs):
                     if pose:
+                        print(rvec_)
+                        print(tvec)
                         if order == 0:
                             print("=============================================")
-                            print(rvec)
+                            print(rvec_)
                             print(tvec)
                         for i in range(3):
-                            self.rvecs_arr[i][order] = rvec[i][0]
-                            self.tvecs_arr[i][order] = tvec[i][0]
+                            self.rvecs_arr[i][order] = rvec_[i]
+                            self.tvecs_arr[i][order] = tvec[i]
                     
                 #     self.QueryImg = aruco.drawAxis(self.QueryImg, self.cameraMatrix, self.distCoeffs, rvec, tvec, 0.02)
             cv2.waitKey(10)
@@ -268,6 +283,8 @@ class CharucoBoardPosture():
             # while not cv2.waitKey(1) & 0xFF == ord('q'):
             #     pass
             # cv2.destroyAllWindows()
+        print("self.cameraMatrix.reshape(1,9):", self.cameraMatrix.reshape(1,9)[0])
+        res.camera_mat = self.cameraMatrix.reshape(1,9)[0]
         return res
             
 if __name__ == '__main__':
