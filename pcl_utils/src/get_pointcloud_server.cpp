@@ -102,6 +102,7 @@ std::string object_type = "non";
 
 bool is_YOLO_detect = false;
 bool catch_image = false;
+bool YOLO_go = false;
 //===================Data===================/
 
 //===================Config===================
@@ -457,7 +458,7 @@ do_FPFH(pcl::PointCloud<pcl::PointXYZ>::Ptr  &target,
 
 void get_RegionYOLO(pcl_utils::ROI_array ROI_array)
 {
-  if (ROI_array.ROI_list.size()>0)
+  if (ROI_array.ROI_list.size()>0 && YOLO_go)
   {
     // ===========do some transform here===========
     // 1 pixel = 0.06666667 cm, at z = 61 cm
@@ -486,12 +487,12 @@ void get_RegionYOLO(pcl_utils::ROI_array ROI_array)
   }
   else
   {
-    x_coordinate_min = 0;
-    x_coordinate_max = 0;
-    y_coordinate_min = 0;
-    y_coordinate_max = 0;
-    z_coordinate_min = 0;
-    z_coordinate_max = 0;
+    // x_coordinate_min = 0;
+    // x_coordinate_max = 0;
+    // y_coordinate_min = 0;
+    // y_coordinate_max = 0;
+    // z_coordinate_min = 0;
+    // z_coordinate_max = 0;
 
     is_YOLO_detect = false;
   }
@@ -526,8 +527,10 @@ vector<size_t> argsort(const vector<T> &v)
 
 bool Align(pcl_utils::snapshot::Request &req, pcl_utils::snapshot::Response &res)
 {
+  YOLO_go = true;
   if (catch_image)
   {
+    YOLO_go = false;
     std::string source_name_front = "/home/robotarm/Documents/solomon_ws/src/pcl_utils/data/source/final/solomon_part_A.pcd";
     std::string source_name_back = "/home/robotarm/Documents/solomon_ws/src/pcl_utils/data/source/final/solomon_part_B.pcd";
     std::string source_name_down = "/home/robotarm/Documents/solomon_ws/src/pcl_utils/data/source/final/solomon_part_C.pcd";
@@ -563,6 +566,8 @@ bool Align(pcl_utils::snapshot::Request &req, pcl_utils::snapshot::Response &res
       else
       {
           source_name = "unknown";
+          res.doit = false;
+          return true;
       }
       
       std::cout<<"source_name -----> "<<object_type<<endl;
@@ -613,6 +618,42 @@ bool Align(pcl_utils::snapshot::Request &req, pcl_utils::snapshot::Response &res
       ICP_Transform = do_ICP(cloud, FPFH_out);
 
       Final_Transform = ICP_Transform*FPFH_Transform;
+
+      switch (object_type)
+      {
+      case "front":
+        if(Final_Transform.coeff(2, 2) > -0.85) //cos(30) ~= 0.85
+        {
+          res.doit = false;
+          return true;
+        }
+        break;
+      case "back":
+        if(Final_Transform.coeff(2, 2) < 0.85)
+        {
+          res.doit = false;
+          return true;
+        }
+        break;
+      case "up":
+        if(Final_Transform.coeff(1, 2) < 0.7) //cos(45) ~= 0.7
+        {
+          res.doit = false;
+          return true;
+        }
+        break;
+      case "down":
+        if(Final_Transform.coeff(1, 2) > -0.7)
+        {
+          res.doit = false;
+          return true;
+        }
+        break;
+      default:
+        res.doit = false;
+        return true;
+        break;
+      }
 
       pcl::transformPointCloud(*Source_CAD, *Source_CAD, SourceToOrigin_Transform);
 
