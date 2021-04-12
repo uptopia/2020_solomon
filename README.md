@@ -5,6 +5,7 @@
 roslaunch realsense2_camera rs_camera.launch 
 rosrun pcl_utils get_pointcloud_server
 rviz
+rosrun pcl_utils get_pointcloud_client
 ```
 
 

@@ -476,8 +476,8 @@ void get_RegionYOLO(pcl_utils::ROI_array ROI_array)
     y_coordinate_min = (ROI_array.ROI_list[0].min_y-center_y)*pixeltocm/100;
     y_coordinate_max = (ROI_array.ROI_list[0].Max_y-center_y)*pixeltocm/100;
 
-    z_coordinate_min = 0;
-    z_coordinate_max = 0.6025;
+    z_coordinate_min = 0.5;
+    z_coordinate_max = 0.6053;
 
     object_type = ROI_array.ROI_list[0].object_name;
     // ===========do some transform here===========/
@@ -538,7 +538,7 @@ bool Align(pcl_utils::snapshot::Request &req, pcl_utils::snapshot::Response &res
     std::string source_name_CAD = "/home/robotarm/Documents/solomon_ws/src/pcl_utils/data/source/final/solomon_part.pcd";
 
     std::string source_name = "non";
-    
+  
     do_Passthrough(cloud, cloud, "x", x_coordinate_min, x_coordinate_max);
     do_Passthrough(cloud, cloud, "y", y_coordinate_min, y_coordinate_max);
     do_Passthrough(cloud, cloud, "z", z_coordinate_min, z_coordinate_max);
@@ -619,41 +619,45 @@ bool Align(pcl_utils::snapshot::Request &req, pcl_utils::snapshot::Response &res
 
       Final_Transform = ICP_Transform*FPFH_Transform;
 
-      switch (object_type)
+      if(object_type == "front")
       {
-      case "front":
-        if(Final_Transform.coeff(2, 2) > -0.85) //cos(30) ~= 0.85
+        if(Final_Transform.coeff(2, 2) > -0.85 || icp_result[icp_result.size()-1].icp_error > 1e-05) //cos(30) ~= 0.85
         {
           res.doit = false;
           return true;
         }
-        break;
-      case "back":
-        if(Final_Transform.coeff(2, 2) < 0.85)
+      }
+      else if(object_type == "back")
+      {
+        if(Final_Transform.coeff(2, 2) < 0.85 || icp_result[icp_result.size()-1].icp_error > 1e-05)
         {
           res.doit = false;
           return true;
         }
-        break;
-      case "up":
-        if(Final_Transform.coeff(1, 2) < 0.7) //cos(45) ~= 0.7
+      }
+      else if(object_type == "up")
+      {
+        if(Final_Transform.coeff(2, 1) < 0.5 || icp_result[icp_result.size()-1].icp_error > 1.6e-05) //cos(60) ~= 0.5
         {
           res.doit = false;
           return true;
         }
-        break;
-      case "down":
-        if(Final_Transform.coeff(1, 2) > -0.7)
+      }
+      else if(object_type == "down")
+      {
+        if(Final_Transform.coeff(2, 1) > -0.5 || icp_result[icp_result.size()-1].icp_error > 1.6e-05)
         {
           res.doit = false;
           return true;
         }
-        break;
-      default:
+      }
+      else
+      {
         res.doit = false;
         return true;
-        break;
       }
+
+      std::cout<<"ICP_ERROR_ = : "<<icp_result[icp_result.size()-1].icp_error<<std::endl;
 
       pcl::transformPointCloud(*Source_CAD, *Source_CAD, SourceToOrigin_Transform);
 
