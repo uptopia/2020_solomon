@@ -227,11 +227,11 @@ void yolo_cb(const darknet_ros_msgs::BoundingBoxes::ConstPtr& boxes_msg)
         if(sauce_type.empty())
             num_sauce_types = 0;
 
-        cout << "Total Yolo clusters = " << obj_num << endl;   //ERROR: display 1 even if no obj detected
-        cout << "Total num of sauce types = " << num_sauce_types << endl; //ERROR: display 1 even if no obj detected
+        // cout << "Total Yolo clusters = " << obj_num << endl;   //ERROR: display 1 even if no obj detected
+        // cout << "Total num of sauce types = " << num_sauce_types << endl; //ERROR: display 1 even if no obj detected
 
         //data_received_yolo = true;
-    }
+    }    
 }
 
 void depth_cloud_cb(const sensor_msgs::PointCloud2ConstPtr& depth_cloud_msg)
@@ -241,7 +241,7 @@ void depth_cloud_cb(const sensor_msgs::PointCloud2ConstPtr& depth_cloud_msg)
     // Subscribe "/camera/depth_registered/points" topic
     //==================================================//
     //cout << "depth_cloud_cb\n";
-    cout<<"depth_cloud_cb"<<endl;
+    // cout<<"depth_cloud_cb"<<endl;
     int points = depth_cloud_msg->height * depth_cloud_msg->width;
 
     if((points!=0) && (data_received_depth == false) && (cloud_saved_depth ==false))
@@ -518,24 +518,61 @@ bool pick_highest_sauce()
             //Display Top 3 Sauces via Rviz
             pcl::PointCloud<PointTRGB>::Ptr top3_clouds(new pcl::PointCloud<PointTRGB>);            
 
+            // for(int idx = 0; idx < sauces_all.size(); ++idx)
+            // {   
+            //     if(idx <3)
+            //     {                    
+            //         PointTRGB pt_target;
+            //         pt_target.x = sauces_all[idx].center_point.x;
+            //         pt_target.y = sauces_all[idx].center_point.y;
+            //         pt_target.z = sauces_all[idx].center_point.z;
+
+            //         *top3_clouds = *top3_clouds + *(sauces_all[idx].rgb_cloud);
+             
+            //         //Plot Center Point on Top1 sauce
+            //         if(idx == 0)
+            //         {
+            //             target_sauce_center->clear();
+            //             target_sauce_center->push_back(pt_target);
+            //         }
+            //     }
+            // }
+
+            cout << "===============\n" 
+                << "Top 3 Class\n"
+                << "===============\n";
+            int top3_cnt = 0;
             for(int idx = 0; idx < sauces_all.size(); ++idx)
             {   
-                if(idx <3)
-                {                    
-                    PointTRGB pt_target;
-                    pt_target.x = sauces_all[idx].center_point.x;
-                    pt_target.y = sauces_all[idx].center_point.y;
-                    pt_target.z = sauces_all[idx].center_point.z;
+                std::string obj_class = sauces_all[idx].sauce_class;
+                if(!obj_class.compare("egg") |\
+                    !obj_class.compare("ketchup") |\
+                    !obj_class.compare("pepper"))
+                {
+                    if(top3_cnt < 3)
+                    {                    
+                        PointTRGB pt_target;
+                        pt_target.x = sauces_all[idx].center_point.x;
+                        pt_target.y = sauces_all[idx].center_point.y;
+                        pt_target.z = sauces_all[idx].center_point.z;
 
-                    *top3_clouds = *top3_clouds + *(sauces_all[idx].rgb_cloud);
-             
-                    //Plot Center Point on Top1 sauce
-                    if(idx == 0)
-                    {
-                        target_sauce_center->clear();
-                        target_sauce_center->push_back(pt_target);
+                        *top3_clouds = *top3_clouds + *(sauces_all[idx].rgb_cloud);
+                
+                        //Plot Center Point on Top1 sauce
+                        if(idx == 0)
+                        {
+                            target_sauce_center->clear();
+                            target_sauce_center->push_back(pt_target);
+                        }
+
+                        top3_cnt++;
                     }
                 }
+                else
+                {
+                    cout << "Detect" << sauces_all[idx].sauce_class << endl;
+                }
+                
             }
             
             //Publish pcl::PointCloud to ROS sensor::PointCloud2, and to topic

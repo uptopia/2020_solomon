@@ -13,7 +13,7 @@ $cd ~/Documents/solomon_ws
 $source devel/setup.bash
 $roscore
 $roslaunch get_highest_sauce get_highest_sauce.launch	//開realsense, yolov4
-$rosrun get_highest_sauce get_highest_sauce
+$rosrun get_highest_sauce get_highest_sauce		//運算物件點雲高度
 
 [開始執行流程]
 轉開紅色按鈕
