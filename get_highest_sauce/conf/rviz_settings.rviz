@@ -82,7 +82,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Points
-      Topic: /top3_cloud_pub
+      Topic: /top3_sauce_pub
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -112,7 +112,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Boxes
-      Topic: /target_sauce_center_pub
+      Topic: /top1_sauce_center_pub
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
