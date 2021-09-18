@@ -15,6 +15,7 @@
 //PCL
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <pcl/common/distances.h>
 
 //boost
 #include <boost/make_shared.hpp>
@@ -96,7 +97,7 @@ void yolo_cb(const darknet_ros_msgs::BoundingBoxes::ConstPtr& boxes_msg)
     //==================================================//
     // Subscribe "/darknet_ros/bounding_boxes" topic
     //==================================================//
-    cout << "\nYolo_callback\n";
+    // cout << "\nYolo_callback\n";
     //cout << "Bouding Boxes (header):" << boxes_msg->header << endl;
     //cout << "Bouding Boxes (image_header):" << boxes_msg->image_header << endl;
 
@@ -138,8 +139,8 @@ void yolo_cb(const darknet_ros_msgs::BoundingBoxes::ConstPtr& boxes_msg)
     if(sauce_type.empty())
         num_sauce_types = 0;
 
-    cout << "Total Yolo objects = " << obj_num << endl;
-    cout << "Total # of sauce types = " << num_sauce_types << endl;
+    // cout << "Total Yolo objects = " << obj_num << endl;
+    // cout << "Total # of sauce types = " << num_sauce_types << endl;
 }
 
 void organized_cloud_cb(const sensor_msgs::PointCloud2ConstPtr& organized_cloud_msg)
@@ -148,7 +149,7 @@ void organized_cloud_cb(const sensor_msgs::PointCloud2ConstPtr& organized_cloud_
     // Organized Point Cloud; Depth Point Cloud
     // Subscribe "/camera/depth_registered/points" topic
     //==================================================//
-    cout << "organized_cloud_cb" << endl;
+    // cout << "organized_cloud_cb" << endl;
 
     int img_width = organized_cloud_msg->width;
     int img_height = organized_cloud_msg->height;
@@ -160,7 +161,7 @@ void organized_cloud_cb(const sensor_msgs::PointCloud2ConstPtr& organized_cloud_
         organized_cloud_ori->clear();
         pcl::fromROSMsg(*organized_cloud_msg, *organized_cloud_ori);
         
-        cout << "organized_cloud_ori (width, height) = " << img_width << ", " << img_height << endl;
+        // cout << "organized_cloud_ori (width, height) = " << img_width << ", " << img_height << endl;
     }
 }
 
@@ -172,7 +173,7 @@ bool pick_highest_sauce()
     //========================================//
     for(int n = 0; n < sauces_all.size(); ++n)
     {
-        cout << "Sauce #" << n << endl;
+        // cout << "Sauce #" << n << endl;
         
         //=========================================//
         // Extract Sauce's Depth Cloud(Orgainized)
@@ -205,7 +206,7 @@ bool pick_highest_sauce()
                 }
             }
         }
-        cout << "\tExtracted sauce cloud pt size = " << sauces_all[n].cloud->size() << endl;
+        // cout << "\tExtracted sauce cloud pt size = " << sauces_all[n].cloud->size() << endl;
             
         //==========================================//
         // Get Center 3D Points
@@ -214,34 +215,75 @@ bool pick_highest_sauce()
         int center_x = sauces_all[n].center_pixel.x;
         int center_y = sauces_all[n].center_pixel.y;
 
-        PointTRGB center_pt_3d = organized_cloud_ori->at(center_x, center_y);
-        cout << "\tCenter_pt_3d = " << center_pt_3d.x << ", " << center_pt_3d.y << ", " << center_pt_3d.z << endl;
+        //=============//
+        // new method //
+        //=============//
+        PointTRGB center_pt_3d_ori = organized_cloud_ori->at(center_x, center_y);
+        PointTRGB center_pt_3d_avg = organized_cloud_ori->at(center_x, center_y);
+        // cout << "\tCenter_pt_3d = " << center_pt_3d_ori.x << ", " << center_pt_3d_ori.y << ", " << center_pt_3d_ori.z << endl;
 
-        // if Center_pt_3d is NAN, use all cluster's points
-        if(!pcl_isfinite(center_pt_3d.x) || !pcl_isfinite(center_pt_3d.y) || !pcl_isfinite(center_pt_3d.z))
+        // no matter center_pt_3d_ori is NAN or not, avg with points less than 1 cm
+        int total_points = sauces_all[n].cloud->size();
+        center_pt_3d_avg.x = 0;
+        center_pt_3d_avg.y = 0;
+        center_pt_3d_avg.z = 0;
+
+        int point_use_to_avg = 0;
+        for(int kk = 0; kk < total_points; ++kk)
         {
-            int total_points = sauces_all[n].cloud->size();
-            center_pt_3d.x = 0;
-            center_pt_3d.y = 0;
-            center_pt_3d.z = 0;
-
-            for(int kk = 0; kk < total_points; ++kk)
+            PointTRGB pt = sauces_all[n].cloud->points[kk];
+            if(pcl_isfinite(pt.x) && pcl_isfinite(pt.y) && pcl_isfinite(pt.z))
             {
-                PointTRGB pt = sauces_all[n].cloud->points[kk];
-                center_pt_3d.x += pt.x;
-                center_pt_3d.y += pt.y;
-                center_pt_3d.z += pt.z;
+                if(pcl::euclideanDistance(pt, center_pt_3d_ori) < 0.010) //if pt distance less than 1 cm
+                {               
+                    center_pt_3d_avg.x += pt.x;
+                    center_pt_3d_avg.y += pt.y;
+                    center_pt_3d_avg.z += pt.z;
+                    point_use_to_avg += 1;
+                }
             }
-
-            center_pt_3d.x /= total_points;
-            center_pt_3d.y /= total_points;
-            center_pt_3d.z /= total_points;
-
-            cout << "\t**Center_pt_3d = " << center_pt_3d.x << ", " << center_pt_3d.y << ", " << center_pt_3d.z << endl;
         }
-        sauces_all[n].center_point.x = center_pt_3d.x;
-        sauces_all[n].center_point.y = center_pt_3d.y;
-        sauces_all[n].center_point.z = center_pt_3d.z;         
+
+        center_pt_3d_avg.x /= point_use_to_avg;
+        center_pt_3d_avg.y /= point_use_to_avg;
+        center_pt_3d_avg.z /= point_use_to_avg;
+        // cout<<center_pt_3d_avg.x <<", "<<center_pt_3d_avg.y <<", "<< center_pt_3d_avg.z<<", "<<point_use_to_avg<<endl;
+
+        sauces_all[n].center_point.x = center_pt_3d_avg.x;
+        sauces_all[n].center_point.y = center_pt_3d_avg.y;
+        sauces_all[n].center_point.z = center_pt_3d_avg.z;         
+
+        //=============//
+        // prev method //
+        //=============//
+        // PointTRGB center_pt_3d = organized_cloud_ori->at(center_x, center_y);
+        // // cout << "\tCenter_pt_3d = " << center_pt_3d.x << ", " << center_pt_3d.y << ", " << center_pt_3d.z << endl;
+
+        // // if Center_pt_3d is NAN, use all cluster's points
+        // if(!pcl_isfinite(center_pt_3d.x) || !pcl_isfinite(center_pt_3d.y) || !pcl_isfinite(center_pt_3d.z))
+        // {
+        //     int total_points = sauces_all[n].cloud->size();
+        //     center_pt_3d.x = 0;
+        //     center_pt_3d.y = 0;
+        //     center_pt_3d.z = 0;
+
+        //     for(int kk = 0; kk < total_points; ++kk)
+        //     {
+        //         PointTRGB pt = sauces_all[n].cloud->points[kk];
+        //         center_pt_3d.x += pt.x;
+        //         center_pt_3d.y += pt.y;
+        //         center_pt_3d.z += pt.z;
+        //     }
+
+        //     center_pt_3d.x /= total_points;
+        //     center_pt_3d.y /= total_points;
+        //     center_pt_3d.z /= total_points;
+
+        //     // cout << "\t**Center_pt_3d = " << center_pt_3d.x << ", " << center_pt_3d.y << ", " << center_pt_3d.z << endl;
+        // }
+        // sauces_all[n].center_point.x = center_pt_3d.x;
+        // sauces_all[n].center_point.y = center_pt_3d.y;
+        // sauces_all[n].center_point.z = center_pt_3d.z;         
     }
     
     //=================================================================//
@@ -287,23 +329,30 @@ bool pick_highest_sauce()
             !obj_class.compare("ketchup") |\
             !obj_class.compare("pepper"))
         {
-            if(top3_cnt < 3)
-            {                    
-                PointTRGB pt_target;
-                pt_target.x = sauces_all[idx].center_point.x;
-                pt_target.y = sauces_all[idx].center_point.y;
-                pt_target.z = sauces_all[idx].center_point.z;
+            if(pcl_isfinite(sauces_all[idx].center_point.x) && pcl_isfinite(sauces_all[idx].center_point.y) && pcl_isfinite(sauces_all[idx].center_point.z))
+            {
+                if(top3_cnt == 0) //(top3_cnt < 3)
+                {                    
+                    PointTRGB pt_target;
+                    pt_target.x = sauces_all[idx].center_point.x;
+                    pt_target.y = sauces_all[idx].center_point.y;
+                    pt_target.z = sauces_all[idx].center_point.z;
 
-                *top3_sauce = *top3_sauce + *(sauces_all[idx].cloud);
-        
-                //Plot Center Point on Top1 sauce
-                if(top3_cnt == 0)
-                {
+                    *top3_sauce = *top3_sauce + *(sauces_all[idx].cloud);
+            
                     top1_sauce_center->clear();
                     top1_sauce_center->push_back(pt_target);
                     top1_sauce_idx = idx;
+
+                    // //Plot Center Point on Top1 sauce
+                    // if(top3_cnt == 0)
+                    // {
+                        // top1_sauce_center->clear();
+                        // top1_sauce_center->push_back(pt_target);
+                        // top1_sauce_idx = idx;
+                    // }
+                    top3_cnt++;
                 }
-                top3_cnt++;
             }
         }
         else
@@ -332,12 +381,12 @@ bool pick_highest_sauce()
         highest_sauce_3D_point_y = sauces_all[top1_sauce_idx].center_point.y;
         highest_sauce_3D_point_z = sauces_all[top1_sauce_idx].center_point.z;    
 
-        cout << "\n\n"
-            << "*****Find Highest Sauce, Done!*****\n"
-            << "\thighest_sauce_class = " << highest_sauce_class << endl
-            << "\thighest_sauce_3D_point_x = " << highest_sauce_3D_point_x << endl
-            << "\thighest_sauce_3D_point_y = " << highest_sauce_3D_point_y << endl
-            << "\thighest_sauce_3D_point_z = " << highest_sauce_3D_point_z << "\n\n\n";
+        // cout << "\n\n"
+        //     << "*****Find Highest Sauce, Done!*****\n"
+        //     << "\thighest_sauce_class = " << highest_sauce_class << endl
+        //     << "\thighest_sauce_3D_point_x = " << highest_sauce_3D_point_x << endl
+        //     << "\thighest_sauce_3D_point_y = " << highest_sauce_3D_point_y << endl
+        //     << "\thighest_sauce_3D_point_z = " << highest_sauce_3D_point_z << "\n\n\n";
 
         sauces_all = {};
 
@@ -354,32 +403,36 @@ bool response_highest(get_highest_sauce::HighestSauce::Request& req, get_highest
     //當抵達拍照位置時(req.picture_pose_reached == true)
     //回傳最高醬料包資訊(res)
 
-    cout << "Service Node START" << endl;
+    cout << "\nService Node START" << endl;
     res.is_done = false;
     
     if(req.picture_pose_reached == true)
     {
-        cout << "req.picture_pose_reached = " << int(req.picture_pose_reached) << endl;
+        // cout << "req.picture_pose_reached = " << int(req.picture_pose_reached) << endl;
 
         bool highest_get = pick_highest_sauce();
 
         if(highest_get == true)
         {
-            cout << "highest_get == true" << endl;
+            // cout << "highest_get == true" << endl;
             res.multiple_sauce_type = ((num_sauce_types == 0) || (num_sauce_types == 1))? false: true;
             res.sauce_class = highest_sauce_class;
             res.center_point_x = highest_sauce_3D_point_x;
             res.center_point_y = highest_sauce_3D_point_y;
             res.center_point_z = highest_sauce_3D_point_z;
             res.is_done = true;
-            cout << "[SERVER] sending back response (highest_sauce)" << res.sauce_class << endl;
+            // cout << "[SERVER] sending back response (highest_sauce)" << res.sauce_class << endl;
+            cout << "\033[1;33m=========Pick Sauce=========\033[0m\n";
+            cout << "sauce type: " << res.sauce_class << endl;
+            cout << "sauce position (x, y, z): " << res.center_point_x << ", "<< res.center_point_y << ", "<< res.center_point_z << endl;
+            cout << "\033[1;33m============================\033[0m\n";
         }
         else
         {
             //NO SAUCE OBJECT; OR UNABLE TO DETECT SAUCES
-            cout << "!!!!!!!!!!!!!!NO SAUCE OBJECT; OR UNABLE TO DETECT SAUCES!!!!!!!!!!!!!!\n" << endl;
-            cout << "!!!!!!!!!!!!!!NO SAUCE OBJECT; OR UNABLE TO DETECT SAUCES!!!!!!!!!!!!!!\n" << endl;
-            cout << "!!!!!!!!!!!!!!NO SAUCE OBJECT; OR UNABLE TO DETECT SAUCES!!!!!!!!!!!!!!\n" << endl;
+            cout << "!!!!!!!!!!!!!!NO SAUCE OBJECT; OR UNABLE TO DETECT SAUCES!!!!!!!!!!!!!!" << endl;
+            // cout << "!!!!!!!!!!!!!!NO SAUCE OBJECT; OR UNABLE TO DETECT SAUCES!!!!!!!!!!!!!!" << endl;
+            // cout << "!!!!!!!!!!!!!!NO SAUCE OBJECT; OR UNABLE TO DETECT SAUCES!!!!!!!!!!!!!!" << endl;
         }            
     }
     else
