@@ -1,11 +1,11 @@
 ## [  windows系統的電腦(控上銀手臂)  ]  
 $打開: 本機/windows/opt
 $執行ROS(會打開terminal)
-$在terminal輸入：$roscore
+$在terminal輸入：`roscore`
 
 $再打開另一個terminal
-$cd hiwin_ws
-$roslaunch huddle_mission pick_and_place_huddle.launch 
+`cd hiwin_ws`
+`roslaunch huddle_mission pick_and_place_huddle.launch`
 $選擇4
 
 
@@ -26,14 +26,17 @@ $rosrun get_highest_sauce get_highest_sauce		//運算物件點雲高度
 
 	*roslaunch realsense2_camera rs_camera.launch
 
-#### 2.開啟Yolo detector
+### 2.開啟Yolo detector
 	$cd solomon_ws
 	$source devel/setup.bash
 	$roslaunch darknet_ros yolov4_sauce.launch
 	
 	*roslaunch yolo_detection yolo_get_test.launch
 
-=>1 + 2 = get_highest_sauce.launch
+### 合併1 + 2 = get_highest_sauce.launch
+```
+roslaunch get_highest_sauce get_highest_sauce.launch 
+```
 
 ### 3.執行get_hightest_sauce程式
 	$cd solomon_ws
@@ -41,7 +44,7 @@ $rosrun get_highest_sauce get_highest_sauce		//運算物件點雲高度
 	$rosrun get_highest_sauce get_highest_sauce
 
 
-=>用client測試：
+### 4.若無連接HIWIN手臂，可用client測試：
 	$cd solomon_ws
 	$. devel/setup.bash
 	$rosrun client client
